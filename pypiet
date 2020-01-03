@@ -152,7 +152,7 @@ def performinst(lighnesschange,huechange,blocksize,DP,CC):
             print("greater")
             a = stack.pop()
             b = stack.pop()
-            if b > a:
+            if int(b) > int(a):
                 stack.append(1)
             else:
                 stack.append(0)
@@ -176,7 +176,7 @@ def performinst(lighnesschange,huechange,blocksize,DP,CC):
             print("subtract")
             a = stack.pop()
             b = stack.pop()
-            c = b-a
+            c = int(b)-int(a)
             stack.append(c)
         elif huechange == 2:
             print("mod")
@@ -218,7 +218,7 @@ def performinst(lighnesschange,huechange,blocksize,DP,CC):
             print("multiply")
             a = stack.pop()
             b = stack.pop()
-            c = a * b
+            c = int(a) * int(b)
             stack.append(c)
             print(stack)
         elif huechange == 2:
