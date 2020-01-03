@@ -1,0 +1,358 @@
+#! /usr/bin/python3
+
+from PIL import Image
+import sys
+import readchar
+
+sys.setrecursionlimit(4400)
+print(sys.getrecursionlimit())
+stack = []
+output = []
+
+#find position in colors[]
+def find(c):
+    for i, color in enumerate(colors):
+        if c in color:
+            return (i, color.index(c))
+        elif c in ['FFFFFF', '000000']:
+            if c == 'FFFFFF':
+                return (-1,-1)
+            return
+    print("color not found")
+    print(c)
+    exit()
+
+#convert rgb tuple to hex string
+def tohex(rgb):
+    return format(rgb[0], '02x').upper() + format(rgb[1], '02x').upper() + format(rgb[2], '02x').upper()
+
+#save a larger version of the program
+def makelarge(image,width,height,x):
+    larger = image.resize((int(width * x), int(height * x)))
+    larger.save('larger.png')
+
+#count all pixels of the same color in the current block
+def countpixels(x,y,color):
+    if(x < 0 or x >= width or y < 0 or y >= height or 
+            find(tohex(img.getpixel((x,y)))) != color 
+            or tuple((x,y)) in currentcolorblock):
+        return
+    currentcolorblock.append(tuple((x,y)))
+    countpixels(x+1,y,color)
+    countpixels(x-1,y,color)
+    countpixels(x,y+1,color)
+    countpixels(x,y-1,color)
+
+#find the highest and lowest x and y values in the current block
+def findhighestlowest():
+    lowesty = height
+    lowestx = width
+    highesty = 0
+    highestx = 0
+    for coord in currentcolorblock:
+        if coord[1] < lowesty:
+            lowesty = coord[1]
+        if coord[0] < lowestx:
+            lowestx = coord[0]
+        if coord[1] > highesty:
+            highesty = coord[1]
+        if coord[0] > highestx:
+            highestx = coord[0]
+    return lowesty, lowestx, highesty, highestx
+
+def processblock(nextpixel,currentcolorblock,DP,CC):
+    trycount=0
+    while( (nextpixel[0] >= width or nextpixel[0] < 0 or nextpixel[1] >= height or 
+            nextpixel[1] < 0 or tohex(img.getpixel(nextpixel)) == "000000")  and 
+            trycount < 8):
+        if DP == 0: #facing right
+            if CC == 0: #leftmost pixel
+                ycoord = height
+                for coords in currentcolorblock:
+                    if coords[1] < ycoord and coords[0] == highestx:
+                        ycoord = coords[1]
+                        xcoord = highestx
+            elif CC == 1: #rightmost pixel
+                ycoord = -1
+                for coords in currentcolorblock:
+                    if coords[1] > ycoord and coords[0] == highestx:
+                        ycoord = coords[1]
+                        xcoord = highestx
+            nextpixel = tuple((xcoord+1,ycoord))
+        elif DP == 1: #facing down
+            if CC == 0: #leftmost pixel
+                xcoord = -1
+                for coords in currentcolorblock:
+                    if coords[0] > xcoord and coords[1] == highesty:
+                        xcoord = coords[0]
+                        ycoord = highesty
+            elif CC == 1: #rightmost pixel
+                xcoord = width
+                for coords in currentcolorblock:
+                    if coords[0] < xcoord and coords[1] == highesty:
+                        xcoord = coords[0]
+                        ycoord = highesty
+            nextpixel = tuple((xcoord, ycoord+1))
+        elif DP == 2: #facing left
+            if CC == 0: #leftmost pixel
+                ycoord = -1
+                for coords in currentcolorblock:
+                    if coords[1] > ycoord and coords[0] == lowestx:
+                        ycoord = coords[1]
+                        xcoord = lowestx
+            elif CC == 1: #rightmost pixel
+                ycoord = height
+                for coords in currentcolorblock:
+                    if coords[1] < ycoord and coords[0] == lowestx:
+                        ycoord = coords[1]
+                        xcoord = lowestx
+            nextpixel = tuple((xcoord-1,ycoord))
+        elif DP == 3: #facing up
+            if CC == 0: #leftmost pixel
+                xcoord = width
+                for coords in currentcolorblock:
+                    if coords[0] < xcoord and coords[1] == lowesty:
+                        xcoord = coords[0]
+                        ycoord = lowesty
+            elif CC == 1: #rightmost pixel
+                xcoord = -1
+                for coords in currentcolorblock:
+                    if coords[0] > xcoord and coords[1] == lowesty:
+                        xcoord = coords[0]
+                        ycoord = lowesty
+            nextpixel = tuple((xcoord,ycoord-1))
+        if ((nextpixel[0] >= width or nextpixel[0] < 0 or nextpixel[1] >= height or 
+                nextpixel[1] < 0 or tohex(img.getpixel(nextpixel)) == "000000") and 
+                trycount < 8) :
+            trycount = trycount+1
+            if(trycount%2 == 1):
+                CC = (CC + 1) % 2
+            elif(trycount%2 == 0):
+                DP = (DP + 1) % 4
+    return (nextpixel,trycount,DP,CC)
+
+def performinst(lighnesschange,huechange,blocksize,DP,CC):
+    if lightnesschange == 0:
+        if huechange == 0:
+            print("do nothing")
+        elif huechange == 1:
+            print("add")
+            a = stack.pop()
+            b = stack.pop()
+            c = a+b
+            stack.append(c)
+        elif huechange == 2:
+            print("divide")
+            a = stack.pop()
+            b = stack.pop()
+            c = b / a
+            stack.append(int(c))
+            print(stack)
+        elif huechange == 3:
+            print("greater")
+            a = stack.pop()
+            b = stack.pop()
+            if b > a:
+                stack.append(1)
+            else:
+                stack.append(0)
+            print(stack)
+        elif huechange == 4:
+            print("duplicate")
+            element = stack.pop()
+            stack.append(element)
+            stack.append(element)
+            print(stack)
+        elif huechange == 5:
+            print("in char")
+            c = readchar.readchar()
+            stack.append(c)
+    elif lightnesschange == 1:
+        if huechange == 0:
+            print("push " + str(blocksize))
+            stack.append(blocksize)
+            print(str(stack))
+        elif huechange == 1:
+            print("subtract")
+            a = stack.pop()
+            b = stack.pop()
+            c = b-a
+            stack.append(c)
+        elif huechange == 2:
+            print("mod")
+            a = stack.pop()
+            b = stack.pop()
+            c = int(b)%int(a)
+            stack.append(c)
+            print(stack)
+        elif huechange == 3:
+            print("pointer")
+            pointer = stack.pop()
+            DP = (DP + pointer) % 4
+        elif huechange == 4:
+            print("roll")
+            times = stack.pop()
+            depth = stack.pop()
+            temp = []
+            for j in range (times):
+                temp.clear()
+                temp = stack[-depth:]
+                last = temp.pop()
+                temp.insert(0,last)
+                for i in range(depth):
+                    stack.pop()
+                for i in range(len(temp)):
+                    stack.append(temp[i])
+            print(stack)
+        elif huechange == 5:
+            print("out number")
+            num = stack.pop()
+            print(num)
+            output.append(str(num))
+    elif lightnesschange == 2:
+        if huechange == 0:
+            print("pop")
+            stack.pop()
+            print(stack)
+        elif huechange == 1:
+            print("multiply")
+            a = stack.pop()
+            b = stack.pop()
+            c = a * b
+            stack.append(c)
+            print(stack)
+        elif huechange == 2:
+            print("not")
+            a = stack.pop()
+            if a != 0:
+                stack.append(0)
+            else:
+                stack.append(1)
+            print(stack)
+        elif huechange == 3:
+            print("switch")
+            if(len(stack)) != 0:
+                a = stack.pop()
+                CC = (CC+a)%2
+            print(stack)
+        elif huechange == 4:
+            print("in number")
+            num = input()
+            stack.append(num)
+        elif huechange == 5:
+            print("out char")
+            char = stack.pop()
+            print(str(chr(char)))
+            output.append(chr(char))
+    return DP,CC
+
+def calcchange(previouscolor, currentcolor):
+    changeinx=0
+    changeiny=0
+    if (previouscolor != (-1,-1)):
+        if currentcolor[0]-previouscolor[0] < 0:
+            lightnesschange = currentcolor[0]+3-previouscolor[0]
+        else:
+            lightnesschange = currentcolor[0]-previouscolor[0]
+        if currentcolor[1]-previouscolor[1] < 0:
+            huechange = currentcolor[1]+6-previouscolor[1]
+        else:
+            huechange=currentcolor[1]-previouscolor[1]
+    else:
+        lightnesschange = 0
+        huechange = 0
+    return lightnesschange, huechange
+
+img = Image.open(sys.argv[1]).convert('RGB')
+print("image size: " + str(img.size))
+width, height = img.size
+
+colors = [['FFC0C0', 'FFFFC0', 'C0FFC0', 'C0FFFF', 'C0C0FF', 'FFC0FF'],
+        ['FF0000', 'FFFF00', '00FF00', '00FFFF', '0000FF', 'FF00FF'],
+        ['C00000', 'C0C000', '00C000', '00C0C0', '0000C0', 'C000C0']]
+
+colornames = [['light red', 'light yellow', 'light green', 'light cyan', 'light blue', 'light magenta'],
+        ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta'],
+        ['dark red', 'dark yellow', 'dark green', 'dark cyan', 'dark blue', 'dark magenta']]
+
+#make a larger image
+makelarge(img,width,height,25)
+
+print("first pixel: " + str(img.getpixel((0,0))))
+previouscolor = find(tohex(img.getpixel((0,0))))
+#previous = find(tohex(imgarr[0][0]))
+currentcolorblock = []
+trycount = 0
+DP = 0
+CC = 0
+x = 0
+y = 0
+exit = 0
+blocksize = 0
+nextpixel = tuple((width,height))
+#for i in range(18):
+while(not exit):
+    currentcolor = find(tohex(img.getpixel((x,y))))
+    if currentcolor == (-1,-1):
+        savedx = x
+        savedy = y
+        if DP == 0:
+            x = x+1
+        elif DP == 1:
+            y = y+1
+        elif DP == 2:
+            x = x-1
+        elif DP == 3:
+            y = y-1
+        if x > width or y > height or x < 0 or y < 0:
+            x = savedx
+            y = savedy
+            DP = (DP+1)%4
+        elif (tohex(img.getpixel((x,y))) == '000000' ):
+            x = savedx
+            y = savedy
+            DP = (DP+1)%4
+        previouscolor = currentcolor
+        continue
+
+    name = colornames[currentcolor[0]][currentcolor[1]]
+    print("current color: " + str(colornames[currentcolor[0]][currentcolor[1]]))
+    
+    #count the pixels in the current block
+    countpixels(x,y,currentcolor) 
+    
+    #find max and min of x and y
+    lowesty, lowestx, highesty, highestx = findhighestlowest()
+    
+    #calcualte change in lightness and hue from previous block
+    lightnesschange, huechange = calcchange(previouscolor, currentcolor)
+
+
+    #print( "change in lightness: " + str(lightnesschange) + " change in hue: " + str(huechange) )
+
+    #perform instruction before finding next pixel because DP and CC might change
+    DP,CC = performinst(lightnesschange,huechange,blocksize,DP,CC) 
+    print("DP: " + str(DP) + " CC: " + str(CC))
+
+    #print("previous block size: " + str(blocksize))
+
+
+    #find next pixel
+    nextpixel,trycount,DP,CC = processblock(nextpixel,currentcolorblock,DP,CC)
+    
+    x,y=nextpixel
+    if trycount >= 8:
+        print("terminated")
+        exit=1
+    else:
+        print("try: " + str(trycount))
+        trycount=0
+        #name = find(tohex(img.getpixel(nextpixel)))
+        #print("next pixel: " + str(nextpixel) + str(colornames[name[0]][name[1]]))
+    
+    blocksize=len(currentcolorblock)
+    currentcolorblock.clear()
+    previouscolor = currentcolor
+    nextpixel=tuple((width,height))
+    print(" ")
+print(''.join(output))
