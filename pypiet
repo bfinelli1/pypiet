@@ -139,13 +139,13 @@ def performinst(lighnesschange,huechange,blocksize,DP,CC):
             print("add")
             a = stack.pop()
             b = stack.pop()
-            c = a+b
+            c = int(a)+int(b)
             stack.append(c)
         elif huechange == 2:
             print("divide")
             a = stack.pop()
             b = stack.pop()
-            c = b / a
+            c = int(b) / int(a)
             stack.append(int(c))
             print(stack)
         elif huechange == 3:
