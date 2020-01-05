@@ -134,116 +134,130 @@ def processblock(nextpixel,currentcolorblock,DP,CC):
 def performinst(lighnesschange,huechange,blocksize,DP,CC):
     if lightnesschange == 0:
         if huechange == 0:
-            print("do nothing")
+            z = 1
         elif huechange == 1:
-            print("add")
-            a = stack.pop()
-            b = stack.pop()
-            c = int(a)+int(b)
-            stack.append(c)
+            #print("add")
+            if len(stack) > 0:
+                a = stack.pop()
+                b = stack.pop()
+                c = int(a)+int(b)
+                stack.append(c)
         elif huechange == 2:
-            print("divide")
-            a = stack.pop()
-            b = stack.pop()
-            c = int(b) / int(a)
-            stack.append(int(c))
-            print(stack)
+            #print("divide")
+            if len(stack) > 0:
+                a = stack.pop()
+                b = stack.pop()
+                c = int(b) / int(a)
+                stack.append(int(c))
+            #print(stack)
         elif huechange == 3:
-            print("greater")
-            a = stack.pop()
-            b = stack.pop()
-            if int(b) > int(a):
-                stack.append(1)
-            else:
-                stack.append(0)
-            print(stack)
+            #print("greater")
+            if len(stack) > 0:
+                a = stack.pop()
+                b = stack.pop()
+                if int(b) > int(a):
+                    stack.append(1)
+                else:
+                    stack.append(0)
+            #print(stack)
         elif huechange == 4:
-            print("duplicate")
-            element = stack.pop()
-            stack.append(element)
-            stack.append(element)
-            print(stack)
+            #print("duplicate")
+            if len(stack) > 0:
+                element = stack.pop()
+                stack.append(element)
+                stack.append(element)
+            #print(stack)
         elif huechange == 5:
-            print("in char")
+            #print("in char")
             c = readchar.readchar()
             stack.append(c)
     elif lightnesschange == 1:
         if huechange == 0:
-            print("push " + str(blocksize))
+            #print("push " + str(blocksize))
             stack.append(blocksize)
-            print(str(stack))
+            #print(str(stack))
         elif huechange == 1:
-            print("subtract")
-            a = stack.pop()
-            b = stack.pop()
-            c = int(b)-int(a)
-            stack.append(c)
+            #print("subtract")
+            if len(stack) > 1:
+                a = stack.pop()
+                b = stack.pop()
+                c = int(b)-int(a)
+                stack.append(c)
         elif huechange == 2:
-            print("mod")
-            a = stack.pop()
-            b = stack.pop()
-            c = int(b)%int(a)
-            stack.append(c)
-            print(stack)
+            #print("mod")
+            if len(stack) > 0:
+                a = stack.pop()
+                b = stack.pop()
+                c = int(b)%int(a)
+                stack.append(c)
+            #print(stack)
         elif huechange == 3:
-            print("pointer")
-            pointer = stack.pop()
-            DP = (DP + pointer) % 4
+            #print("pointer")
+            if len(stack) > 0:
+                pointer = stack.pop()
+                DP = (DP + pointer) % 4
         elif huechange == 4:
-            print("roll")
-            times = stack.pop()
-            depth = stack.pop()
-            temp = []
-            for j in range (times):
-                temp.clear()
-                temp = stack[-depth:]
-                last = temp.pop()
-                temp.insert(0,last)
-                for i in range(depth):
-                    stack.pop()
-                for i in range(len(temp)):
-                    stack.append(temp[i])
-            print(stack)
+            #print("roll")
+            if len(stack) > 0:
+                times = stack.pop()
+                depth = stack.pop()
+                temp = []
+                for j in range (times):
+                    temp.clear()
+                    temp = stack[-depth:]
+                    last = temp.pop()
+                    temp.insert(0,last)
+                    for i in range(depth):
+                        if len(stack) > 0:
+                            stack.pop()
+                    for i in range(len(temp)):
+                        stack.append(temp[i])
+            #print(stack)
         elif huechange == 5:
-            print("out number")
-            num = stack.pop()
-            print(num)
-            output.append(str(num))
+            #print("out number")
+            if len(stack) > 0:
+                num = stack.pop()
+                print(num, end = '')
+                output.append(str(num))
     elif lightnesschange == 2:
         if huechange == 0:
-            print("pop")
-            stack.pop()
-            print(stack)
+            #print("pop")
+            if len(stack) > 0:
+                stack.pop()
+            #print(stack)
         elif huechange == 1:
-            print("multiply")
-            a = stack.pop()
-            b = stack.pop()
-            c = int(a) * int(b)
-            stack.append(c)
-            print(stack)
+            #print("multiply")
+            if len(stack) > 0:
+                a = stack.pop()
+                b = stack.pop()
+                c = int(a) * int(b)
+                stack.append(c)
+            #print(stack)
         elif huechange == 2:
-            print("not")
-            a = stack.pop()
-            if a != 0:
-                stack.append(0)
-            else:
-                stack.append(1)
-            print(stack)
+            #print("not")
+            if len(stack) > 0:
+                a = stack.pop()
+                if a != 0:
+                    stack.append(0)
+                else:
+                    stack.append(1)
+            #print(stack)
         elif huechange == 3:
-            print("switch")
+            #print("switch")
             if(len(stack)) != 0:
                 a = stack.pop()
                 CC = (CC+a)%2
-            print(stack)
+            #print(stack)
         elif huechange == 4:
-            print("in number")
+            #print("in number")
             num = input()
             stack.append(num)
         elif huechange == 5:
-            print("out char")
-            char = stack.pop()
-            print(str(chr(char)))
-            output.append(chr(char))
+            #print("out char")
+            if len(stack) > 0:
+                char = stack.pop()
+                print(str(chr(char)), end = '')
+                output.append(chr(char))
     return DP,CC
 
 def calcchange(previouscolor, currentcolor):
@@ -264,7 +278,7 @@ def calcchange(previouscolor, currentcolor):
     return lightnesschange, huechange
 
 img = Image.open(sys.argv[1]).convert('RGB')
-print("image size: " + str(img.size))
+#print("image size: " + str(img.size))
 width, height = img.size
 
 colors = [['FFC0C0', 'FFFFC0', 'C0FFC0', 'C0FFFF', 'C0C0FF', 'FFC0FF'],
@@ -278,7 +292,7 @@ colornames = [['light red', 'light yellow', 'light green', 'light cyan', 'light 
 #make a larger image
 makelarge(img,width,height,25)
 
-print("first pixel: " + str(img.getpixel((0,0))))
+#print("first pixel: " + str(img.getpixel((0,0))))
 previouscolor = find(tohex(img.getpixel((0,0))))
 #previous = find(tohex(imgarr[0][0]))
 currentcolorblock = []
@@ -304,7 +318,7 @@ while(not exit):
             x = x-1
         elif DP == 3:
             y = y-1
-        if x > width or y > height or x < 0 or y < 0:
+        if x >= width or y >= height or x < 0 or y < 0:
             x = savedx
             y = savedy
             DP = (DP+1)%4
@@ -316,7 +330,7 @@ while(not exit):
         continue
 
     name = colornames[currentcolor[0]][currentcolor[1]]
-    print("current color: " + str(colornames[currentcolor[0]][currentcolor[1]]))
+    #print("current color: " + str(colornames[currentcolor[0]][currentcolor[1]]))
     
     #count the pixels in the current block
     countpixels(x,y,currentcolor) 
@@ -332,7 +346,7 @@ while(not exit):
 
     #perform instruction before finding next pixel because DP and CC might change
     DP,CC = performinst(lightnesschange,huechange,blocksize,DP,CC) 
-    print("DP: " + str(DP) + " CC: " + str(CC))
+    #print("DP: " + str(DP) + " CC: " + str(CC))
 
     #print("previous block size: " + str(blocksize))
 
@@ -345,7 +359,7 @@ while(not exit):
         print("terminated")
         exit=1
     else:
-        print("try: " + str(trycount))
+        #print("try: " + str(trycount))
         trycount=0
         #name = find(tohex(img.getpixel(nextpixel)))
         #print("next pixel: " + str(nextpixel) + str(colornames[name[0]][name[1]]))
@@ -354,5 +368,5 @@ while(not exit):
     currentcolorblock.clear()
     previouscolor = currentcolor
     nextpixel=tuple((width,height))
-    print(" ")
+    #print(" ")
 print(''.join(output))
