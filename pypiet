@@ -5,7 +5,7 @@ import sys
 import readchar
 
 sys.setrecursionlimit(4400)
-print(sys.getrecursionlimit())
+#print(sys.getrecursionlimit())
 stack = []
 output = []
 
@@ -356,7 +356,7 @@ while(not exit):
     
     x,y=nextpixel
     if trycount >= 8:
-        print("terminated")
+        #print("terminated")
         exit=1
     else:
         #print("try: " + str(trycount))
@@ -369,4 +369,4 @@ while(not exit):
     previouscolor = currentcolor
     nextpixel=tuple((width,height))
     #print(" ")
-print(''.join(output))
+#print(''.join(output))
